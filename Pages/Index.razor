@@ -7,6 +7,7 @@
 @using System.Diagnostics
 @using System.Runtime.CompilerServices
 @using MyBlazorServerApp.Annotations
+@using Syncfusion.Blazor.BarcodeGenerator
 
 
 @using Syncfusion.Blazor.PivotView
@@ -14,18 +15,19 @@
 @using Syncfusion.Blazor.Buttons
 
 
-<SfButton Content="Update" OnClick="update"></SfButton>
+<SfButton Content="Update" OnClick="() => RefreshData(false)"></SfButton>
+<SfButton CssClass="e-flat" IsPrimary="true" IconCss="@IconCss" Content="@Content" IsToggle="true" @onclick="OnToggleClick" @ref="ToggleBtnObj"></SfButton>
 
 @*<SfGrid @ref="Grid" DataSource="@products" Height="300" Width="1000" EnableVirtualization="true" EnableColumnVirtualization="true">
     <GridColumns>
     @foreach (var prop in typeof(ProductDetails).GetProperties())
     {
-    <GridColumn Field="@prop.Name" IsPrimaryKey="@(prop.Name == "Id")"  AllowEditing="true"></GridColumn>
+    <GridColumn Field="@prop.Name" IsPrimaryKey="@(prop.Name == "Id")" AllowEditing="true"></GridColumn>
     }
     </GridColumns>
     </SfGrid>*@
 
-<SfPivotView TValue="ProductDetails" Height="560" Width="1200" ShowGroupingBar="true" ShowFieldList="true">
+<SfPivotView @ref="PivotTable" TValue="ProductDetails" Height="560" Width="1200" ShowGroupingBar="true" ShowFieldList="true" AllowDeferLayoutUpdate="true">
     <PivotViewDataSourceSettings DataSource="@products">
         <PivotViewColumns>
             <PivotViewColumn Name="Year"></PivotViewColumn>
@@ -48,46 +50,118 @@
 </SfPivotView>
 
 @code {
+    SfButton ToggleBtnObj;
+    public string IconCss = "e-icons e-pause";
+    public string Content = "Pause";
 
     public ObservableCollection<ProductDetails> products { get; set; }
-    private Timer timer;
-    private static Random rand = new Random(42);
-    private Timer Timer;
+
+    private static readonly Random Rand = new Random(42);
+
+    private int _refreshPeriodMs = 5_000;
 
     SfGrid<ProductDetails> Grid { get; set; }
+    SfPivotView<ProductDetails> PivotTable { get; set; }
 
-    public void update()
+    private static Random rand = new Random(42);
+    private const int InitCount = 200_000;
+    private object syncRoot = new object();
+
+
+    private static bool _paused
     {
-        foreach (var product in products)
-        {
-            product.Sold = rand.Next(10000);
-        }
+        get;
+
+        set;
+
     }
+
+    private System.Threading.Timer Timer;
+
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        this.products = ProductDetails.GetProductData();
+        this.products = ProductDetails.GetProductData(InitCount);
 
-        Timer = new System.Threading.Timer((object? sender) =>
+        Timer = new Timer(_ =>
         {
             InvokeAsync(async () =>
-       {
-           // Add your update logic here
-           RefreshData(null);
-           // Update the UI
-           StateHasChanged();
-       });
-        }, null, 0, 5_000);
+            {
+    // Add your update logic here
+                RefreshData(_paused);
+                // Update the UI
+                StateHasChanged();
+            });
+        }, null, 0, _refreshPeriodMs);
 
     }
 
-    public void RefreshData(object? state)
+    public void RefreshData(object paused)
     {
-        foreach (var product in products)
+        Debug.WriteLine($"timer thread: paused = {_paused}");
+
+        if (_paused)
+            return;
+            
+        lock (syncRoot)
         {
-            product.Sold = rand.Next(1_000);
-            product.Amount = rand.Next(1_000);
+            var w = Stopwatch.StartNew();
+            var nextNb = products.Count; //rand.Next((int)(InitCount * 0.85), (int)(InitCount * 1.2));
+
+            var newProducts = ProductDetails.GetProductData(nextNb);
+            var keep = Math.Min(products.Count, newProducts.Count);
+            for (int i = 0; i < keep; i++)
+            {
+                products[i] = newProducts[i];
+            }
+
+            if (newProducts.Count == products.Count)
+                return;
+
+            if (newProducts.Count > products.Count)
+            {
+                var idx = products.Count;
+                for (int i = idx; i < newProducts.Count; i++)
+                {
+                    products.Add(newProducts[idx]);
+
+                }
+            }
+            else
+            {
+                for (var rmv = newProducts.Count; rmv < products.Count; rmv++)
+                    products.RemoveAt(rmv);
+            }
+            Debug.WriteLine($"add @{w.Elapsed} paused={_paused}");
+        }
+    }
+
+
+    public void OnToggleClick()
+    {
+        lock (syncRoot)
+        {
+            if (!_paused)
+            {
+                // timer on going
+                this.Content = "Play";
+                this.IconCss = "e-icons e-play";
+
+                //Timer.Enabled = false;
+                Debug.WriteLine("paused");
+            }
+            else
+            {
+                this.Content = "Pause";
+                this.IconCss = "e-icons e-pause";
+
+                //Timer.Enabled = true;
+                Debug.WriteLine("restarted");
+            }
+
+            _paused = !_paused;
+            Debug.WriteLine($"new paused = {_paused}");
         }
     }
 
@@ -117,27 +191,34 @@
         public static string[] Prds = new string[] { "Mountain Bikes", "Road Bikes" };
         public static string[] Yrs = new string[] { "FY 2015", "FY 2016", "FY 2017" };
         public static string[] Qters = new string[] { "Q1", "Q2", "Q3", "Q4" };
-        private static int _nbProducts = 200_000;
 
 
-        public static ObservableCollection<ProductDetails> GetProductData()
+        public static ObservableCollection<ProductDetails> GetProductData(int nbProducts)
         {
             var productData = new ObservableCollection<ProductDetails>();
 
-            for (int i = 0; i < _nbProducts; i++)
+            for (int i = 0; i < nbProducts; i++)
             {
-                productData.Add(new ProductDetails
-                    {
-                        Sold = rand.Next(100),
-                        Amount = rand.Next(100),
-                        Country = Countries[rand.Next(0, 2)],
-                        Product = Prds[rand.Next(0, 2)],
-                        Year = Yrs[rand.Next(0, 2)],
-                        Quarter = Qters[rand.Next(0, 3)],
-                    });
+                productData.Add(BuildOne(i));
             }
             return productData;
         }
+
+        public static ProductDetails BuildOne(int id)
+        {
+            return new ProductDetails
+                {
+                    Id = id,
+                    Sold = Rand.Next(100),
+                    Amount = Rand.Next(100),
+                    Country = Countries[Rand.Next(0, Countries.Length)],
+                    Product = Prds[Rand.Next(0, Prds.Length)],
+                    Year = Yrs[Rand.Next(0, Yrs.Length)],
+                    Quarter = Qters[Rand.Next(0, Qters.Length)],
+                };
+        }
+
+        public int Id { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -151,4 +232,7 @@
             }
         }
     }
+
 }
+
+
