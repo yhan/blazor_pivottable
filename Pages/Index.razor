@@ -1,40 +1,24 @@
 ﻿@page "/"
 
-
 @using System.Threading
 @using System.Collections.ObjectModel
-@using System.ComponentModel
 @using System.Diagnostics
-@using System.Runtime.CompilerServices
-@using MyBlazorServerApp.Annotations
-@using Syncfusion.Blazor.BarcodeGenerator
-
 
 @using Syncfusion.Blazor.PivotView
-@using Syncfusion.Blazor.Grids
 @using Syncfusion.Blazor.Buttons
 
-
-<SfButton Content="Update" OnClick="() => RefreshData(false)"></SfButton>
+<SfButton Content="Update" OnClick="() => UpdateData()"></SfButton>
 <SfButton CssClass="e-flat" IsPrimary="true" IconCss="@IconCss" Content="@Content" IsToggle="true" @onclick="OnToggleClick" @ref="ToggleBtnObj"></SfButton>
 
-@*<SfGrid @ref="Grid" DataSource="@products" Height="300" Width="1000" EnableVirtualization="true" EnableColumnVirtualization="true">
-    <GridColumns>
-    @foreach (var prop in typeof(ProductDetails).GetProperties())
-    {
-    <GridColumn Field="@prop.Name" IsPrimaryKey="@(prop.Name == "Id")" AllowEditing="true"></GridColumn>
-    }
-    </GridColumns>
-    </SfGrid>*@
-
 <SfPivotView @ref="PivotTable" TValue="ProductDetails" Height="560" Width="1200" ShowGroupingBar="true" ShowFieldList="true" AllowDeferLayoutUpdate="true">
-    <PivotViewDataSourceSettings DataSource="@products">
+    <PivotViewDataSourceSettings DataSource="@Data">
         <PivotViewColumns>
             <PivotViewColumn Name="Year"></PivotViewColumn>
             <PivotViewColumn Name="Quarter"></PivotViewColumn>
         </PivotViewColumns>
         <PivotViewRows>
             <PivotViewRow Name="Country"></PivotViewRow>
+            @*<PivotViewRow Name="Product"></PivotViewRow>*@
         </PivotViewRows>
         <PivotViewValues>
             <PivotViewValue Name="Sold" Caption="Sold Units" Type="SummaryTypes.Sum"></PivotViewValue>
@@ -54,109 +38,67 @@
     public string IconCss = "e-icons e-pause";
     public string Content = "Pause";
 
-    public ObservableCollection<ProductDetails> products { get; set; }
+    public ObservableCollection<ProductDetails> Data { get; set; }
 
     private static readonly Random Rand = new Random(42);
 
     private int _refreshPeriodMs = 5_000;
-
-    SfGrid<ProductDetails> Grid { get; set; }
+    
     SfPivotView<ProductDetails> PivotTable { get; set; }
-
-    private static Random rand = new Random(42);
+    
     private const int InitCount = 200_000;
-    private object syncRoot = new object();
+    private readonly object _syncRoot = new object();
 
+    private static bool _paused;
+    private System.Threading.Timer _timer;
 
-    private static bool _paused
-    {
-        get;
-
-        set;
-
-    }
-
-    private System.Threading.Timer Timer;
-
+    private bool registered;
 
     protected override async Task OnInitializedAsync()
     {
+        Debug.WriteLine($"index page {GetHashCode()}");
+
         await base.OnInitializedAsync();
-        this.products = ProductDetails.GetProductData(InitCount);
+        this.Data = new ObservableCollection<ProductDetails>(PollingService.Instance.Cache);
 
-        Timer = new Timer(_ =>
+        if (!registered)
         {
-            InvokeAsync(async () =>
-            {
-    // Add your update logic here
-                RefreshData(_paused);
-                // Update the UI
-                StateHasChanged();
-            });
-        }, null, 0, _refreshPeriodMs);
-
-    }
-
-    public void RefreshData(object paused)
-    {
-        Debug.WriteLine($"timer thread: paused = {_paused}");
-
-        if (_paused)
-            return;
-            
-        lock (syncRoot)
-        {
-            var w = Stopwatch.StartNew();
-            var nextNb = products.Count; //rand.Next((int)(InitCount * 0.85), (int)(InitCount * 1.2));
-
-            var newProducts = ProductDetails.GetProductData(nextNb);
-            var keep = Math.Min(products.Count, newProducts.Count);
-            for (int i = 0; i < keep; i++)
-            {
-                products[i] = newProducts[i];
-            }
-
-            if (newProducts.Count == products.Count)
-                return;
-
-            if (newProducts.Count > products.Count)
-            {
-                var idx = products.Count;
-                for (int i = idx; i < newProducts.Count; i++)
-                {
-                    products.Add(newProducts[idx]);
-
-                }
-            }
-            else
-            {
-                for (var rmv = newProducts.Count; rmv < products.Count; rmv++)
-                    products.RemoveAt(rmv);
-            }
-            Debug.WriteLine($"add @{w.Elapsed} paused={_paused}");
+            PollingService.Instance.UnRegisterAll();
+            PollingService.Instance.Register(GetHashCode(), UpdateData);
+            registered = true;
         }
     }
 
+    public void UpdateData()
+    {
+        InvokeAsync(() =>
+        {
+            Data = new ObservableCollection<ProductDetails>(PollingService.Instance.Cache);
+            StateHasChanged();
+        });
+    }
 
+    public void Dispose()
+    {
+        Console.WriteLine("Dispose");
+    }
+    
     public void OnToggleClick()
     {
-        lock (syncRoot)
+        lock (_syncRoot)
         {
             if (!_paused)
             {
-                // timer on going
                 this.Content = "Play";
                 this.IconCss = "e-icons e-play";
-
-                //Timer.Enabled = false;
+                PollingService.Instance.Pause();
                 Debug.WriteLine("paused");
             }
             else
             {
                 this.Content = "Pause";
                 this.IconCss = "e-icons e-pause";
-
-                //Timer.Enabled = true;
+                PollingService.Instance.Resume();
                 Debug.WriteLine("restarted");
             }
 
@@ -165,74 +107,5 @@
         }
     }
 
-    public class ProductDetails : INotifyPropertyChanged
-    {
-        private int _sold;
-
-        public int Sold
-        {
-            get => _sold;
-            set
-            {
-                _sold = value;
-                NotifyPropertyChanged(nameof(Sold));
-            }
-        }
-
-        //public int Sold { get; set; }
-
-        public double Amount { get; set; }
-        public string Country { get; set; }
-        public string Product { get; set; }
-        public string Year { get; set; }
-        public string Quarter { get; set; }
-
-        public static string[] Countries = new string[] { "France", "Germany", "United States" };
-        public static string[] Prds = new string[] { "Mountain Bikes", "Road Bikes" };
-        public static string[] Yrs = new string[] { "FY 2015", "FY 2016", "FY 2017" };
-        public static string[] Qters = new string[] { "Q1", "Q2", "Q3", "Q4" };
-
-
-        public static ObservableCollection<ProductDetails> GetProductData(int nbProducts)
-        {
-            var productData = new ObservableCollection<ProductDetails>();
-
-            for (int i = 0; i < nbProducts; i++)
-            {
-                productData.Add(BuildOne(i));
-            }
-            return productData;
-        }
-
-        public static ProductDetails BuildOne(int id)
-        {
-            return new ProductDetails
-                {
-                    Id = id,
-                    Sold = Rand.Next(100),
-                    Amount = Rand.Next(100),
-                    Country = Countries[Rand.Next(0, Countries.Length)],
-                    Product = Prds[Rand.Next(0, Prds.Length)],
-                    Year = Yrs[Rand.Next(0, Yrs.Length)],
-                    Quarter = Qters[Rand.Next(0, Qters.Length)],
-                };
-        }
-
-        public int Id { get; set; }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private void NotifyPropertyChanged(string propertyName)
-        {
-            var handler = PropertyChanged;
-            if (handler != null)
-            {
-                handler(this, new PropertyChangedEventArgs(propertyName));
-                //Debug.WriteLine($"{propertyName}");
-            }
-        }
-    }
-
 }
-
 
