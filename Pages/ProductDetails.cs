@@ -97,13 +97,14 @@ namespace MyBlazorServerApp.Pages
     public class PollingService
     {
         private Timer timer;
-        public ProductDetails[] Cache = new ProductDetails[200];
+        public ProductDetails[] Cache;
 
         public static PollingService Instance = new PollingService();
 
         public PollingService()
         {
-            timer = new Timer(Refresh, null, 0, 2000);
+            timer = new Timer(Refresh, null, TimeSpan.Zero, TimeSpan.FromSeconds(2));
+            Cache = new ProductDetails[200];
         }
 
         private void Refresh(object? state)
