@@ -1,10 +1,28 @@
 ﻿@page "/"
-@using Syncfusion.Blazor.PivotView
+
+
 @using System.Threading
 @using System.Collections.ObjectModel
 @using System.ComponentModel
 @using System.Runtime.CompilerServices
 @using MyBlazorServerApp.Annotations
+
+
+@using Syncfusion.Blazor.PivotView
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Buttons
+
+
+<SfButton Content="Update" OnClick="update"></SfButton>
+
+<SfGrid @ref="Grid" DataSource="@products" Height="300" Width="1000" EnableVirtualization="true" EnableColumnVirtualization="true">
+    <GridColumns>
+        @foreach (var prop in typeof(ProductDetails).GetProperties())
+        {
+            <GridColumn Field="@prop.Name" IsPrimaryKey="@(prop.Name == "Id")"  AllowEditing="true"></GridColumn>
+        }
+    </GridColumns>
+</SfGrid>
 
 <SfPivotView TValue="ProductDetails" Height="560" Width="1200" ShowGroupingBar="true" ShowFieldList="true">
     <PivotViewDataSourceSettings DataSource="@products">
@@ -33,25 +51,41 @@
     public ObservableCollection<ProductDetails> products { get; set; }
     private Timer timer;
     private static Random rand = new Random(42);
+    private Timer Timer;
 
-    protected override void OnParametersSet()
+    SfGrid<ProductDetails> Grid { get; set; }
+
+    public void update()
     {
-        base.OnParametersSet();
+        foreach (var product in products)
+        {
+            product.Sold = rand.Next(10000);
+        }
     }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
+        await base.OnInitializedAsync();
         this.products = ProductDetails.GetProductData();
 
-        timer = new Timer(RefreshData, null, 1000, 2000);
+        Timer = new System.Threading.Timer((object? sender) =>
+        {
+            InvokeAsync( async ()  =>
+            {
+    // Add your update logic here
+                RefreshData(null);
+    // Update the UI
+                StateHasChanged();
+            });
+        }, null, 0, 1000);
+        
     }
 
     public void RefreshData(object? state)
     {
         foreach (var product in products)
         {
-            product.Sold = rand.Next(10000);
+            product.Sold = rand.Next(1_000);
         }
     }
 
@@ -77,7 +111,7 @@
 
         public static ObservableCollection<ProductDetails> GetProductData()
         {
-            var productData = new ObservableCollection<ProductDetails>();
+            var productData = new ObservableCollection<ProductDetails>();   
             productData.Add(new ProductDetails { Sold = 31, Amount = 52824, Country = "France", Products = "Mountain Bikes", Year = "FY 2015", Quarter = "Q1" });
             productData.Add(new ProductDetails { Sold = 51, Amount = 86904, Country = "France", Products = "Mountain Bikes", Year = "FY 2015", Quarter = "Q2" });
             productData.Add(new ProductDetails { Sold = 90, Amount = 153360, Country = "France", Products = "Mountain Bikes", Year = "FY 2015", Quarter = "Q3" });

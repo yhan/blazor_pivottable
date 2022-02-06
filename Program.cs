@@ -15,6 +15,7 @@ namespace MyBlazorServerApp
     {
         public static void Main(string[] args)
         {
+            Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("NTc3NTQ1QDMxMzkyZTM0MmUzMGZIekFaNjBaTk5NK1RtMFBFNk1od2dMTVJDMmdhQWRjaHN6SWdETEErVXc9");
             CreateHostBuilder(args).Build().Run();
         }
 
