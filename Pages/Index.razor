@@ -39,18 +39,12 @@
     public string Content = "Pause";
 
     public ObservableCollection<ProductDetails> Data { get; set; }
-
-    private static readonly Random Rand = new Random(42);
-
-    private int _refreshPeriodMs = 5_000;
     
     SfPivotView<ProductDetails> PivotTable { get; set; }
-    
-    private const int InitCount = 200_000;
+
     private readonly object _syncRoot = new object();
 
     private static bool _paused;
-    private System.Threading.Timer _timer;
 
     private bool registered;
 
@@ -59,7 +53,7 @@
         Debug.WriteLine($"index page {GetHashCode()}");
 
         await base.OnInitializedAsync();
-        this.Data = new ObservableCollection<ProductDetails>(PollingService.Instance.Cache);
+        this.Data = PollingService.Instance.Observable;
 
         if (!registered)
         {
@@ -73,7 +67,6 @@
     {
         InvokeAsync(() =>
         {
-            Data = new ObservableCollection<ProductDetails>(PollingService.Instance.Cache);
             StateHasChanged();
         });
     }

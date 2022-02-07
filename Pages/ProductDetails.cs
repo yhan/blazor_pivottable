@@ -50,19 +50,7 @@ namespace MyBlazorServerApp.Pages
         public static string[] Qters = new string[] { "Q1", "Q2", "Q3", "Q4" };
 
         private static Random Rand = new Random(42);
-
-
-        public static List<ProductDetails> GetProductData(int nbProducts)
-        {
-            var productData = new List<ProductDetails>();
-
-            for (int i = 0; i < nbProducts; i++)
-            {
-                productData.Add(BuildOne(i));
-            }
-            return productData;
-        }
-
+        
         public static ProductDetails BuildOne(int id)
         {
             return new ProductDetails
@@ -75,6 +63,17 @@ namespace MyBlazorServerApp.Pages
                 Year = Yrs[Rand.Next(0, Yrs.Length)],
                 Quarter = Qters[Rand.Next(0, Qters.Length)],
             };
+        }
+
+        public ProductDetails Random()
+        {
+            this.Sold = Rand.Next(100);
+            this.Amount = Rand.Next(100);
+            this.Country = Countries[Rand.Next(0, Countries.Length)];
+            this.Product = Prds[Rand.Next(0, Prds.Length)];
+            this.Year = Yrs[Rand.Next(0, Yrs.Length)];
+            this.Quarter = Qters[Rand.Next(0, Qters.Length)];
+            return this;
         }
 
         public int Id { get; set; }

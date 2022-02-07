@@ -84,29 +84,25 @@
     }
 </style>
 @code {
-    private System.Threading.Timer _timer;
-    private static readonly Random Rand = new Random();
 
     public ChartSeriesType ChartType = ChartSeriesType.Bubble;
     public ObservableCollection<ProductDetails> Data { get; set; }
     private Theme Theme { get; set; }
     
     private SfPivotView<ProductDetails> pv;
-    private readonly int _interval = 2000;
+    private bool registered;
 
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        this.Data = new ObservableCollection<ProductDetails>(ProductDetails.GetProductData(2000));
+        await base.OnInitializedAsync();
+        this.Data = PollingService.Instance.Observable;
 
-        // Starting live update in the chart.
-
-        //if (!registered)
+        if (!registered)
         {
             PollingService.Instance.UnRegisterAll();
-
             PollingService.Instance.Register(GetHashCode(), UpdateData);
-            //registered = true;
+            registered = true;
         }
     }
 
@@ -114,7 +110,6 @@
     {
         InvokeAsync(() =>
         {
-            Data = new ObservableCollection<ProductDetails>(PollingService.Instance.Cache);
             StateHasChanged();
         });
     }
@@ -144,8 +139,6 @@
         new DropDownData { Name = "Funnel", Value = ChartSeriesType.Funnel },
         new DropDownData { Name = "Pyramid", Value = ChartSeriesType.Pyramid }
     };
-
-    private bool registered;
 
     public class DropDownData
     {
