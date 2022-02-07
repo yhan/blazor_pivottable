@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 
 namespace MyBlazorServerApp.Pages
 {
@@ -10,6 +8,9 @@ namespace MyBlazorServerApp.Pages
         private int _sold;
         private double _amount;
         private string _year;
+        private string _country;
+        private string _product;
+        private string _quarter;
 
         public int Sold
         {
@@ -40,10 +41,36 @@ namespace MyBlazorServerApp.Pages
                 NotifyPropertyChanged(nameof(Year));
             }
         }
+        
+        public string Country
+        {
+            get => _country; 
+            set
+            {
+                _country = value;
+                NotifyPropertyChanged(nameof(Country));
+            }
+        }
 
-        public string Country { get; set; }
-        public string Product { get; set; }
-        public string Quarter { get; set; }
+        public string Product
+        {
+            get => _product;
+            set
+            {
+                _product = value;
+                NotifyPropertyChanged(nameof(Product));
+            }
+        }
+
+        public string Quarter
+        {
+            get => _quarter;
+            set
+            {
+                _quarter = value;
+                NotifyPropertyChanged(nameof(Quarter));
+            }
+        }
 
         public static string[] Countries = new string[] { "France", "Germany", "United States" };
         public static string[] Prds = new string[] { "Mountain Bikes", "Road Bikes" };
