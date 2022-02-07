@@ -14,7 +14,7 @@ namespace MyBlazorServerApp.Pages
                     ProductDetails.BuildOne(1),
                 };
 
-            var ns = size;//_rand.Next((int)(size * 0.8), (int)(size * 1.2));
+            var ns = _rand.Next((int)(size * 0.8), (int)(size * 1.2));
             var arr = new ProductDetails[ns];
             for (int i = 0; i<arr.Length; i++)
             {
