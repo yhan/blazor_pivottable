@@ -3,11 +3,12 @@
 @using System.Threading
 @using System.Collections.ObjectModel
 @using System.Diagnostics
+@using MyBlazorServerApp.Annotations
 
 @using Syncfusion.Blazor.PivotView
 @using Syncfusion.Blazor.Buttons
 
-<SfButton Content="Update" OnClick="() => UpdateData()"></SfButton>
+<SfButton Content="Update" OnClick="() => UpdateData(null)"></SfButton>
 <SfButton CssClass="e-flat" IsPrimary="true" IconCss="@IconCss" Content="@Content" IsToggle="true" @onclick="OnToggleClick" @ref="ToggleBtnObj"></SfButton>
 
 <SfPivotView @ref="PivotTable" TValue="ProductDetails" Height="560" Width="1200" ShowGroupingBar="true" ShowFieldList="true" AllowDeferLayoutUpdate="true">
@@ -48,25 +49,34 @@
 
     private bool registered;
 
+    private Timer _timer;
+
     protected override async Task OnInitializedAsync()
     {
         Debug.WriteLine($"index page {GetHashCode()}");
 
         await base.OnInitializedAsync();
-        this.Data = PollingService.Instance.Observable;
+        this.Data = PollingService.Instance.Debug(2000);
 
         if (!registered)
         {
-            PollingService.Instance.UnRegisterAll();
-            PollingService.Instance.Register(GetHashCode(), UpdateData);
+            //PollingService.Instance.UnRegisterAll();
+            //PollingService.Instance.Register(GetHashCode(), UpdateData);
             registered = true;
         }
+
+        _timer = new Timer(UpdateData, null, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(2));
     }
 
-    public void UpdateData()
+    public void UpdateData([CanBeNull] object o)
     {
         InvokeAsync(() =>
         {
+            foreach (var d in Data)
+            {
+                d.Random();
+            }
+
             StateHasChanged();
         });
     }

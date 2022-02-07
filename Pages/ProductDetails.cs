@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 
 namespace MyBlazorServerApp.Pages
 {
@@ -50,7 +51,7 @@ namespace MyBlazorServerApp.Pages
         public static string[] Qters = new string[] { "Q1", "Q2", "Q3", "Q4" };
 
         private static Random Rand = new Random(42);
-        
+
         public static ProductDetails BuildOne(int id)
         {
             return new ProductDetails
@@ -73,6 +74,17 @@ namespace MyBlazorServerApp.Pages
             this.Product = Prds[Rand.Next(0, Prds.Length)];
             this.Year = Yrs[Rand.Next(0, Yrs.Length)];
             this.Quarter = Qters[Rand.Next(0, Qters.Length)];
+            return this;
+        }
+
+        public ProductDetails WithValue(ProductDetails pd)
+        {
+            this.Sold = pd.Sold;
+            this.Amount = pd.Amount;
+            this.Country = pd.Country;
+            this.Product = pd.Product;
+            this.Year = pd.Year;
+            this.Quarter = pd.Quarter;
             return this;
         }
 

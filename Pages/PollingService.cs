@@ -13,8 +13,8 @@ namespace MyBlazorServerApp.Pages
         public ObservableCollection<ProductDetails> Observable { get; set; }
         private int _maxId = 0;
         private readonly object _syncRoot = new object();
-        private const int Size = 200_000;
-        private const int TimerIntervalSecond = 10;
+        private const int Size = 2000;
+        private const int TimerIntervalSecond = 2;
 
         private static PollingService _instance;
 
@@ -38,18 +38,19 @@ namespace MyBlazorServerApp.Pages
         public PollingService(ProductDetails[] arr)
         {
             Observable = new ObservableCollection<ProductDetails>(arr);
-            _timer = new Timer(Refresh, null, TimeSpan.Zero, TimeSpan.FromSeconds(TimerIntervalSecond));
+            //_timer = new Timer(Refresh, null, TimeSpan.FromSeconds(TimerIntervalSecond), TimeSpan.FromSeconds(TimerIntervalSecond));
             //Refresh(null);
         }
 
         private void Refresh(object? state)
         {
+            var newData = DataLayer.FetchNew(Size);
             lock (_syncRoot)
             {
                 if (_paused)
                     return;
 
-                for (var i = 0; i < Observable.Count; i++)
+                for (var i = 0; i < Math.Min(Observable.Count, newData.Length); i++)
                 {
                     if (Observable[i] == null)
                     {
@@ -57,14 +58,14 @@ namespace MyBlazorServerApp.Pages
                     }
                     else
                     {
-                        Observable[i].Random();
+                        Observable[i].WithValue(newData[i]);
                     }
                 }
 
-                _maxId = Observable.Count - 1;
+                //_maxId = Observable.Count - 1;
 
-                Observable.RemoveAt(0);
-                Observable.Add(ProductDetails.BuildOne(++_maxId));
+                //Observable.RemoveAt(0);
+                //Observable.Add(ProductDetails.BuildOne(++_maxId));
 
                 //Debug.WriteLine($"handlers count = {_handlers.Count}");
                 foreach (var handler in _handlers.Values)
@@ -92,6 +93,18 @@ namespace MyBlazorServerApp.Pages
         public void UnRegisterAll()
         {
             _handlers.Clear();
+        }
+
+        public ObservableCollection<ProductDetails> Debug(int count)
+        {
+            var col = new ObservableCollection<ProductDetails>();
+            for (var index = 0; index < count; index++)
+            {
+                
+                col.Add(ProductDetails.BuildOne(index));
+            }
+
+            return col;
         }
     }
 }
