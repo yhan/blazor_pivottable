@@ -7,6 +7,7 @@
 
 @using Syncfusion.Blazor.PivotView
 @using Syncfusion.Blazor.Buttons
+@using Syncfusion.Blazor.Navigations
 
 <SfButton Content="Update" OnClick="() => UpdateData(null)"></SfButton>
 <SfButton CssClass="e-flat" IsPrimary="true" IconCss="@IconCss" Content="@Content" IsToggle="true" @onclick="OnToggleClick" @ref="ToggleBtnObj"></SfButton>
@@ -76,6 +77,8 @@
             {
                 d.Random();
             }
+            Data.RemoveAt(0);
+            Data.Add(ProductDetails.BuildOne(42));
 
             StateHasChanged();
         });
