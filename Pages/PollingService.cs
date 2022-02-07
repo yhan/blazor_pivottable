@@ -13,8 +13,8 @@ namespace MyBlazorServerApp.Pages
         public ObservableCollection<ProductDetails> Observable { get; set; }
         
         private readonly object _syncRoot = new object();
-        private const int Size = 2000;
-        private const int TimerIntervalSecond = 2;
+        private const int Size = 200_000;
+        private const int TimerIntervalSecond = 5;
 
         private static PollingService _instance;
 
