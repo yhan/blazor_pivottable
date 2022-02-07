@@ -57,7 +57,7 @@
         Debug.WriteLine($"index page {GetHashCode()}");
 
         await base.OnInitializedAsync();
-        this.Data = PollingService.Instance.Debug(2000);
+        this.Data = PollingService.Instance.Observable;
 
         if (!registered)
         {
@@ -66,7 +66,7 @@
             registered = true;
         }
 
-        _timer = new Timer(UpdateData, null, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(2));
+        _timer = new Timer(UpdateData, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
     }
 
     public void UpdateData([CanBeNull] object o)

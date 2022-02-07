@@ -37,7 +37,7 @@ namespace MyBlazorServerApp.Pages
 
         public PollingService(ProductDetails[] arr)
         {
-            Observable = new ObservableCollection<ProductDetails>(arr);
+            Observable = new ObservableCollection<ProductDetails>(DataLayer.FetchNew(Size));
             //_timer = new Timer(Refresh, null, TimeSpan.FromSeconds(TimerIntervalSecond), TimeSpan.FromSeconds(TimerIntervalSecond));
             //Refresh(null);
         }
