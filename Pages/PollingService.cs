@@ -38,40 +38,27 @@ namespace MyBlazorServerApp.Pages
         public PollingService(ProductDetails[] arr)
         {
             Observable = new ObservableCollection<ProductDetails>(DataLayer.FetchNew(Size));
-            //_timer = new Timer(Refresh, null, TimeSpan.FromSeconds(TimerIntervalSecond), TimeSpan.FromSeconds(TimerIntervalSecond));
+            _timer = new Timer(Refresh, null, TimeSpan.FromSeconds(TimerIntervalSecond), TimeSpan.FromSeconds(TimerIntervalSecond));
             //Refresh(null);
         }
 
         private void Refresh(object? state)
         {
-            var newData = DataLayer.FetchNew(Size);
-            lock (_syncRoot)
+            if(_paused)
+                return;
+
+            var nd = DataLayer.FetchNew(Size);
+            for (var i = 0; i < Observable.Count; i++)
             {
-                if (_paused)
-                    return;
+                Observable[i].WithValue(nd[i]);
+            }
 
-                for (var i = 0; i < Math.Min(Observable.Count, newData.Length); i++)
-                {
-                    if (Observable[i] == null)
-                    {
-                        Observable[i] = ProductDetails.BuildOne(i);
-                    }
-                    else
-                    {
-                        Observable[i].WithValue(newData[i]);
-                    }
-                }
+            Observable.RemoveAt(0);
+            Observable.Add(ProductDetails.BuildOne(42));
 
-                //_maxId = Observable.Count - 1;
-
-                //Observable.RemoveAt(0);
-                //Observable.Add(ProductDetails.BuildOne(++_maxId));
-
-                //Debug.WriteLine($"handlers count = {_handlers.Count}");
-                foreach (var handler in _handlers.Values)
-                {
-                    handler();
-                }
+            foreach (var handler in _handlers.Values)
+            {
+                handler();
             }
         }
 

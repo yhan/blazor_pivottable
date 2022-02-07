@@ -9,7 +9,7 @@
 @using Syncfusion.Blazor.Buttons
 @using Syncfusion.Blazor.Navigations
 
-<SfButton Content="Update" OnClick="() => UpdateData(null)"></SfButton>
+<SfButton Content="Update" OnClick="() => UpdateData()"></SfButton>
 <SfButton CssClass="e-flat" IsPrimary="true" IconCss="@IconCss" Content="@Content" IsToggle="true" @onclick="OnToggleClick" @ref="ToggleBtnObj"></SfButton>
 
 <SfPivotView @ref="PivotTable" TValue="ProductDetails" Height="560" Width="1200" ShowGroupingBar="true" ShowFieldList="true" AllowDeferLayoutUpdate="true">
@@ -61,24 +61,24 @@
 
         if (!registered)
         {
-            //PollingService.Instance.UnRegisterAll();
-            //PollingService.Instance.Register(GetHashCode(), UpdateData);
+            PollingService.Instance.UnRegisterAll();
+            PollingService.Instance.Register(GetHashCode(), UpdateData);
             registered = true;
         }
 
-        _timer = new Timer(UpdateData, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
+        //_timer = new Timer(UpdateData, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
     }
 
-    public void UpdateData([CanBeNull] object o)
+    public void UpdateData()
     {
         InvokeAsync(() =>
         {
-            foreach (var d in Data)
-            {
-                d.Random();
-            }
-            Data.RemoveAt(0);
-            Data.Add(ProductDetails.BuildOne(42));
+            //foreach (var d in Data)
+            //{
+            //    d.Random();
+            //}
+            //Data.RemoveAt(0);
+            //Data.Add(ProductDetails.BuildOne(42));
 
             StateHasChanged();
         });
