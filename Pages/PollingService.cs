@@ -25,7 +25,7 @@ namespace MyBlazorServerApp.Pages
             {
                 if (_instance == null)
                 {
-                    _instance = new PollingService(new ProductDetails[Size]);
+                    _instance = new PollingService();
                 }
 
                 return _instance;
@@ -36,11 +36,10 @@ namespace MyBlazorServerApp.Pages
         private bool _paused;
 
 
-        public PollingService(ProductDetails[] arr)
+        public PollingService()
         {
             Observable = new ObservableCollection<ProductDetails>(DataLayer.FetchNew(Size));
             _timer = new Timer(Refresh, null, TimeSpan.FromSeconds(TimerIntervalSecond), TimeSpan.FromSeconds(TimerIntervalSecond));
-            //Refresh(null);
         }
 
         private void Refresh(object? state)
@@ -107,18 +106,6 @@ namespace MyBlazorServerApp.Pages
         public void UnRegisterAll()
         {
             _handlers.Clear();
-        }
-
-        public ObservableCollection<ProductDetails> DebugHelperBuild(int count)
-        {
-            var col = new ObservableCollection<ProductDetails>();
-            for (var index = 0; index < count; index++)
-            {
-
-                col.Add(ProductDetails.BuildOne(index));
-            }
-
-            return col;
         }
     }
 }
