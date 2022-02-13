@@ -12,7 +12,20 @@
 <SfButton Content="Update" OnClick="() => UpdateData()"></SfButton>
 <SfButton CssClass="e-flat" IsPrimary="true" IconCss="@IconCss" Content="@Content" IsToggle="true" @onclick="OnToggleClick" @ref="ToggleBtnObj"></SfButton>
 
-<SfPivotView @ref="PivotTable" TValue="ProductDetails" Height="560" Width="1200" ShowGroupingBar="true" ShowFieldList="true" AllowDeferLayoutUpdate="true">
+
+@*The pivot table processes and summarizes raw data before 
+displaying it in tabular format. 
+In general, the more data takes longer time to process the aggregation
+of the pivot table values. When we have a large number of unique row and column headers, 
+we can improve performance by using the "Virtualization" option. If we have fewer unique headers with larger amount of data, 
+it will take time to process, since virtualization works by slicing the large number of unique row and column headers alone.
+As a result, to avoid this problem, you should increase the interval time. 
+Please take the following steps to improve the performance of the pivot table.
+
+https://www.syncfusion.com/forums/172612/how-to-update-pivot-table-with-source-data-refreshed?reply=S2POIQ
+
+*@
+<SfPivotView @ref="PivotTable" TValue="ProductDetails" Height="560" Width="1200" ShowGroupingBar="true" ShowFieldList="true" EnableVirtualization="true" AllowDeferLayoutUpdate="true">
     <PivotViewDataSourceSettings DataSource="@Data">
         <PivotViewColumns>
             <PivotViewColumn Name="Year"></PivotViewColumn>
@@ -41,7 +54,7 @@
     public string Content = "Pause";
 
     public ObservableCollection<ProductDetails> Data { get; set; }
-    
+
     SfPivotView<ProductDetails> PivotTable { get; set; }
 
     private readonly object _syncRoot = new object();
@@ -51,10 +64,11 @@
     private bool registered;
 
     private Timer _timer;
-
+    private int count;
     protected override async Task OnInitializedAsync()
     {
-        Debug.WriteLine($"index page {GetHashCode()}");
+        // called twice! why ?
+        Debug.WriteLine($"[{this.GetType().FullName} - {this.GetHashCode()}] Called {++count} time(s)");
 
         await base.OnInitializedAsync();
         this.Data = PollingService.Instance.Observable;
@@ -88,7 +102,7 @@
     {
         Console.WriteLine("Dispose");
     }
-    
+
     public void OnToggleClick()
     {
         lock (_syncRoot)

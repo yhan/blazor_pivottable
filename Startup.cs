@@ -32,6 +32,12 @@ namespace MyBlazorServerApp
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddSingleton<WeatherForecastService>();
+            services.AddSignalR(e =>
+            {
+                // avoid the server disconnection problem
+                e.MaximumReceiveMessageSize = 102_400_000; // 100 MB
+            });
+
             services.AddSyncfusionBlazor();
         }
 

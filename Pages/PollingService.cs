@@ -14,7 +14,7 @@ namespace MyBlazorServerApp.Pages
         
         private readonly object _syncRoot = new object();
         private const int Size = 200_000;
-        private const int TimerIntervalSecond = 5;
+        private const int TimerIntervalSecond = 10;
 
         private static PollingService _instance;
 
