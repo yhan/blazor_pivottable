@@ -43,4 +43,9 @@ else
     {
         forecasts = await ForecastService.GetForecastAsync(DateTime.Now);
     }
+
+    public void Dispose()
+    {
+        Console.WriteLine("Dispose");
+    }
 }

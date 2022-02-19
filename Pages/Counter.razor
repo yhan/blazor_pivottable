@@ -6,14 +6,15 @@
 @using System.Timers
 @using Timer = System.Threading.Timer
 @using System.Collections.ObjectModel
+@using System.Threading
 
-
+@implements IDisposable;
 @inject NavigationManager NavigationManager
 
 
 <div class="col-lg-9 control-section sb-property-border">
     <div class="content-wrapper">
-        <SfPivotView @ref="pv" TValue="ProductDetails" ShowFieldList=true>
+        <SfPivotView @ref="pv" TValue="ProductDetails" ShowFieldList="true" EnableVirtualization="true"> 
             <PivotViewDataSourceSettings DataSource="@Data" ExpandAll=false EnableSorting=true>
                 <PivotViewColumns>
                     <PivotViewColumn Name="Country"></PivotViewColumn>
@@ -96,11 +97,11 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+
         this.Data = PollingService.Instance.Observable;
 
         if (!registered)
         {
-            PollingService.Instance.UnRegisterAll();
             PollingService.Instance.Register(GetHashCode(), UpdateData);
             registered = true;
         }
@@ -144,6 +145,11 @@
     {
         public string Name { get; set; }
         public ChartSeriesType Value { get; set; }
+    }
+
+    public void Dispose()
+    {
+        PollingService.Instance.UnRegister(this.GetHashCode());
     }
 
 }

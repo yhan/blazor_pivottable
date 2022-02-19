@@ -18,7 +18,6 @@ namespace MyBlazorServerApp.Pages
 
         private static PollingService _instance;
 
-
         public static PollingService Instance
         {
             get
@@ -47,39 +46,43 @@ namespace MyBlazorServerApp.Pages
             if (_paused)
                 return;
 
+
+            var nd = DataLayer.FetchNew(Size);
+            var newSize = nd.Length;
+            var prevSize = Observable.Count;
+
+            var replaceSize = Math.Min(newSize, prevSize);
+
+            for (var i = 0; i < replaceSize; i++)
+            {
+                Observable[i].WithValue(nd[i]);
+            }
+
+            if (newSize < prevSize)
+            {
+                var i = prevSize;
+                for (i = prevSize - 1; i >= replaceSize; i--)
+                {
+                    Observable.RemoveAt(i);
+                }
+
+                Debug.WriteLine($"removed {prevSize - newSize}");
+            }
+            else if (newSize > prevSize)
+            {
+                for (int i = prevSize; i < replaceSize; i++)
+                {
+                    Observable.Add(nd[i]);
+                }
+
+                Debug.WriteLine($"added {newSize - prevSize}");
+            }
+
+            //Observable.Add(ProductDetails.BuildOne(42));
+
             lock (_syncRoot)
             {
-                var nd = DataLayer.FetchNew(Size);
-                var newSize = nd.Length;
-                var prevSize = Observable.Count;
-
-                var replaceSize = Math.Min(newSize, prevSize);
-
-                for (var i = 0; i < replaceSize; i++)
-                {
-                    Observable[i].WithValue(nd[i]);
-                }
-
-                if (newSize < prevSize)
-                {
-                    var i = prevSize;
-                    for (i = prevSize-1; i >= replaceSize; i--)
-                    {
-                        Observable.RemoveAt(i);
-                    }
-                    Debug.WriteLine($"removed {prevSize - newSize}");
-                }
-                else if (newSize > prevSize)
-                {
-                    for (int i = prevSize; i < replaceSize; i++)
-                    {
-                        Observable.Add(nd[i]);
-                    }
-                    Debug.WriteLine($"added {newSize - prevSize}");
-                }
-
-                //Observable.Add(ProductDetails.BuildOne(42));
-
+                Debug.WriteLine($"handlers count = {_handlers.Count}");
                 foreach (var handler in _handlers.Values)
                 {
                     handler();
@@ -90,7 +93,8 @@ namespace MyBlazorServerApp.Pages
 
         public void Register(int subscriber, Action refreshData)
         {
-            _handlers.Add(subscriber, refreshData);
+            lock (_syncRoot)
+                _handlers.Add(subscriber, refreshData);
         }
 
         public void Pause()
@@ -102,10 +106,11 @@ namespace MyBlazorServerApp.Pages
         {
             _paused = false;
         }
-
-        public void UnRegisterAll()
+        
+        public void UnRegister(int subscriber)
         {
-            _handlers.Clear();
+            lock (_syncRoot)
+                _handlers.Remove(subscriber);
         }
     }
 }

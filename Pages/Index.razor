@@ -1,5 +1,7 @@
 ﻿@page "/"
 
+@implements IDisposable;
+
 @using System.Threading
 @using System.Collections.ObjectModel
 @using System.Diagnostics
@@ -67,7 +69,7 @@ https://www.syncfusion.com/forums/172612/how-to-update-pivot-table-with-source-d
     private int count;
     protected override async Task OnInitializedAsync()
     {
-        // called twice! why ?
+    // called twice! why ?
         Debug.WriteLine($"[{this.GetType().FullName} - {this.GetHashCode()}] Called {++count} time(s)");
 
         await base.OnInitializedAsync();
@@ -75,7 +77,6 @@ https://www.syncfusion.com/forums/172612/how-to-update-pivot-table-with-source-d
 
         if (!registered)
         {
-            PollingService.Instance.UnRegisterAll();
             PollingService.Instance.Register(GetHashCode(), UpdateData);
             registered = true;
         }
@@ -100,7 +101,7 @@ https://www.syncfusion.com/forums/172612/how-to-update-pivot-table-with-source-d
 
     public void Dispose()
     {
-        Console.WriteLine("Dispose");
+        PollingService.Instance.UnRegister(GetHashCode());
     }
 
     public void OnToggleClick()
