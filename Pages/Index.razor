@@ -1,6 +1,7 @@
 ﻿@page "/"
 
-@implements IDisposable;
+@implements IDisposable
+@inject PollingService _pollingService
 
 @using System.Threading
 @using System.Collections.ObjectModel
@@ -73,11 +74,11 @@ https://www.syncfusion.com/forums/172612/how-to-update-pivot-table-with-source-d
         Debug.WriteLine($"[{this.GetType().FullName} - {this.GetHashCode()}] Called {++count} time(s)");
 
         await base.OnInitializedAsync();
-        this.Data = PollingService.Instance.Observable;
+        this.Data = _pollingService.Observable;
 
         if (!registered)
         {
-            PollingService.Instance.Register(GetHashCode(), UpdateData);
+            _pollingService.Register(GetHashCode(), UpdateData);
             registered = true;
         }
 
@@ -101,7 +102,7 @@ https://www.syncfusion.com/forums/172612/how-to-update-pivot-table-with-source-d
 
     public void Dispose()
     {
-        PollingService.Instance.UnRegister(GetHashCode());
+        _pollingService.UnRegister(GetHashCode());
     }
 
     public void OnToggleClick()
@@ -112,14 +113,14 @@ https://www.syncfusion.com/forums/172612/how-to-update-pivot-table-with-source-d
             {
                 this.Content = "Play";
                 this.IconCss = "e-icons e-play";
-                PollingService.Instance.Pause();
+                _pollingService.Pause();
                 Debug.WriteLine("paused");
             }
             else
             {
                 this.Content = "Pause";
                 this.IconCss = "e-icons e-pause";
-                PollingService.Instance.Resume();
+                _pollingService.Resume();
                 Debug.WriteLine("restarted");
             }
 

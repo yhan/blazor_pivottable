@@ -13,24 +13,9 @@ namespace MyBlazorServerApp.Pages
         public ObservableCollection<ProductDetails> Observable { get; set; }
         
         private readonly object _syncRoot = new object();
-        private const int Size = 200_000;
+        private const int Size = 2000;
         private const int TimerIntervalSecond = 10;
-
-        private static PollingService _instance;
-
-        public static PollingService Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = new PollingService();
-                }
-
-                return _instance;
-            }
-        }
-
+        
         private readonly Dictionary<int, Action> _handlers = new Dictionary<int, Action>();
         private bool _paused;
 
@@ -45,8 +30,7 @@ namespace MyBlazorServerApp.Pages
         {
             if (_paused)
                 return;
-
-
+            
             var nd = DataLayer.FetchNew(Size);
             var newSize = nd.Length;
             var prevSize = Observable.Count;

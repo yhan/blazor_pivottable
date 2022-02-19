@@ -10,6 +10,7 @@
 
 @implements IDisposable;
 @inject NavigationManager NavigationManager
+@inject PollingService _pollingService
 
 
 <div class="col-lg-9 control-section sb-property-border">
@@ -98,11 +99,11 @@
     {
         await base.OnInitializedAsync();
 
-        this.Data = PollingService.Instance.Observable;
+        this.Data = _pollingService.Observable;
 
         if (!registered)
         {
-            PollingService.Instance.Register(GetHashCode(), UpdateData);
+            _pollingService.Register(GetHashCode(), UpdateData);
             registered = true;
         }
     }
@@ -149,7 +150,7 @@
 
     public void Dispose()
     {
-        PollingService.Instance.UnRegister(this.GetHashCode());
+        _pollingService.UnRegister(this.GetHashCode());
     }
 
 }

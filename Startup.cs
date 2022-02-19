@@ -12,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MyBlazorServerApp.Data;
+using MyBlazorServerApp.Pages;
 using Syncfusion.Blazor;
 
 namespace MyBlazorServerApp
@@ -32,6 +33,8 @@ namespace MyBlazorServerApp
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddSingleton<WeatherForecastService>();
+            services.AddSingleton<PollingService>();
+
             services.AddSignalR(e =>
             {
                 // avoid the server disconnection problem
