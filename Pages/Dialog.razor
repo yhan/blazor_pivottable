@@ -1,0 +1,27 @@
+﻿@page "/dialog"
+@using System.Diagnostics
+
+<div class="card" style="width:22rem">
+    <div class="card-body">
+        <h3 class="card-title">@Title</h3>
+        <p class="card-text">@ChildContent</p>
+        <button @onclick="OnYes">Yes!</button>
+    </div>
+</div>
+
+<Dialog Title="Learn More">
+    Do you want to <i>learn more</i> about Blazor?
+</Dialog>
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public string? Title { get; set; }
+
+    private void OnYes()
+    {
+        Debug.WriteLine("Write to the console in C#! 'Yes' button selected.");
+    }
+}

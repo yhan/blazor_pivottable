@@ -1,6 +1,6 @@
 using System;
 
-namespace MyBlazorServerApp.Data
+namespace blazor_pivottable.Data
 {
     public class WeatherForecast
     {

@@ -3,76 +3,81 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.AspNetCore.Connections.Features;
-using Syncfusion.Blazor.Internal;
 
-namespace MyBlazorServerApp.Pages
+namespace blazor_pivottable.Pages
 {
     public class PollingService
     {
         private Timer _timer;
         public ObservableCollection<ProductDetails> Observable { get; set; }
+        
         private readonly object _syncRoot = new object();
-        private const int InitSize = 200_000;
-        private const int TimerIntervalSecond = 5;
-
-        private static PollingService _instance;
-
-        private readonly Random _rand = new Random();
+        private const int Size = 2000;
+        private const int TimerIntervalSecond = 10;
+        
         private readonly Dictionary<int, Action> _handlers = new Dictionary<int, Action>();
         private bool _paused;
 
 
-        public static PollingService Instance {
-            get
-            {
-                if (_instance == null)
-                {
-                    _instance = new PollingService();
-                }
-
-                return _instance;
-            }
-        }
-
-
         public PollingService()
         {
-            //var arr = new ProductDetails[InitSize];
-            Observable = new ObservableCollection<ProductDetails>(/*arr*/);
-            _timer = new Timer(Refresh, null, TimeSpan.Zero, TimeSpan.FromSeconds(TimerIntervalSecond));
+            Observable = new ObservableCollection<ProductDetails>(DataLayer.FetchNew(Size));
+            _timer = new Timer(Refresh, null, TimeSpan.FromSeconds(TimerIntervalSecond), TimeSpan.FromSeconds(TimerIntervalSecond));
         }
 
         private void Refresh(object? state)
         {
             if (_paused)
                 return;
-
-            var count = _rand.Next((int)(InitSize * 0.8), (int)(InitSize * 1.2));
-            var arr = new ProductDetails[count];
-            for (var j = 0; j < count; j++)
-            {
-                arr[j] = ProductDetails.BuildOne(j);
-            }
             
+            var nd = DataLayer.FetchNew(Size);
+            var newSize = nd.Length;
+            var prevSize = Observable.Count;
+
+            var replaceSize = Math.Min(newSize, prevSize);
+
+            for (var i = 0; i < replaceSize; i++)
+            {
+                Observable[i].WithValue(nd[i]);
+            }
+
+            if (newSize < prevSize)
+            {
+                var i = prevSize;
+                for (i = prevSize - 1; i >= replaceSize; i--)
+                {
+                    Observable.RemoveAt(i);
+                }
+
+                Debug.WriteLine($"removed {prevSize - newSize}");
+            }
+            else if (newSize > prevSize)
+            {
+                for (int i = prevSize; i < replaceSize; i++)
+                {
+                    Observable.Add(nd[i]);
+                }
+
+                Debug.WriteLine($"added {newSize - prevSize}");
+            }
+
+            //Observable.Add(ProductDetails.BuildOne(42));
+
             lock (_syncRoot)
             {
-                Observable.Clear();
-                foreach (var a in arr)
-                {
-                    Observable.Add(a);
-                }
-                //Debug.WriteLine($"handlers count = {_handlers.Count}");
+                Debug.WriteLine($"handlers count = {_handlers.Count}");
                 foreach (var handler in _handlers.Values)
                 {
                     handler();
                 }
             }
+
         }
 
         public void Register(int subscriber, Action refreshData)
         {
-            _handlers.Add(subscriber, refreshData);
+            lock (_syncRoot)
+                _handlers.Add(subscriber, refreshData);
         }
 
         public void Pause()
@@ -84,10 +89,11 @@ namespace MyBlazorServerApp.Pages
         {
             _paused = false;
         }
-
-        public void UnRegisterAll()
+        
+        public void UnRegister(int subscriber)
         {
-            _handlers.Clear();
+            lock (_syncRoot)
+                _handlers.Remove(subscriber);
         }
     }
 }

@@ -1,14 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 
-namespace MyBlazorServerApp.Pages
+namespace blazor_pivottable.Pages
 {
     public class ProductDetails : INotifyPropertyChanged
     {
         private int _sold;
         private double _amount;
         private string _year;
+        private string _country;
+        private string _product;
+        private string _quarter;
 
         public int Sold
         {
@@ -39,10 +41,36 @@ namespace MyBlazorServerApp.Pages
                 NotifyPropertyChanged(nameof(Year));
             }
         }
+        
+        public string Country
+        {
+            get => _country; 
+            set
+            {
+                _country = value;
+                NotifyPropertyChanged(nameof(Country));
+            }
+        }
 
-        public string Country { get; set; }
-        public string Product { get; set; }
-        public string Quarter { get; set; }
+        public string Product
+        {
+            get => _product;
+            set
+            {
+                _product = value;
+                NotifyPropertyChanged(nameof(Product));
+            }
+        }
+
+        public string Quarter
+        {
+            get => _quarter;
+            set
+            {
+                _quarter = value;
+                NotifyPropertyChanged(nameof(Quarter));
+            }
+        }
 
         public static string[] Countries = new string[] { "France", "Germany", "United States" };
         public static string[] Prds = new string[] { "Mountain Bikes", "Road Bikes" };
@@ -50,7 +78,7 @@ namespace MyBlazorServerApp.Pages
         public static string[] Qters = new string[] { "Q1", "Q2", "Q3", "Q4" };
 
         private static Random Rand = new Random(42);
-        
+
         public static ProductDetails BuildOne(int id)
         {
             return new ProductDetails
@@ -73,6 +101,17 @@ namespace MyBlazorServerApp.Pages
             this.Product = Prds[Rand.Next(0, Prds.Length)];
             this.Year = Yrs[Rand.Next(0, Yrs.Length)];
             this.Quarter = Qters[Rand.Next(0, Qters.Length)];
+            return this;
+        }
+
+        public ProductDetails WithValue(ProductDetails pd)
+        {
+            this.Sold = pd.Sold;
+            this.Amount = pd.Amount;
+            this.Country = pd.Country;
+            this.Product = pd.Product;
+            this.Year = pd.Year;
+            this.Quarter = pd.Quarter;
             return this;
         }
 
