@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 
-namespace MyBlazorServerApp.Pages
+namespace blazor_pivottable.Pages
 {
     public class ProductDetails : INotifyPropertyChanged
     {

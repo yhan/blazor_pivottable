@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace MyBlazorServerApp.Data
+namespace blazor_pivottable.Data
 {
     public class WeatherForecastService
     {

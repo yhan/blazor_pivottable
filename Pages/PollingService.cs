@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Threading;
-using Syncfusion.Blazor.Internal;
 
-namespace MyBlazorServerApp.Pages
+namespace blazor_pivottable.Pages
 {
     public class PollingService
     {

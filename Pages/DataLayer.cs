@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MyBlazorServerApp.Pages
+namespace blazor_pivottable.Pages
 {
     internal class DataLayer
     {

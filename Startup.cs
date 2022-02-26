@@ -1,21 +1,15 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-
+using blazor_pivottable.Data;
+using blazor_pivottable.Pages;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using MyBlazorServerApp.Data;
-using MyBlazorServerApp.Pages;
 using Syncfusion.Blazor;
 
-namespace MyBlazorServerApp
+namespace blazor_pivottable
 {
     public class Startup
     {
