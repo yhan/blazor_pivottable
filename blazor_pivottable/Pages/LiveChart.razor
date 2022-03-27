@@ -1,0 +1,122 @@
+﻿@page "/chart/live-chart"
+
+@using Syncfusion.Blazor
+
+@using Syncfusion.Blazor.Charts
+@using System.Collections.ObjectModel
+@using System.Diagnostics
+@using System.Threading
+@using System.Timers
+@using HubServiceInterfaces
+@using Microsoft.AspNetCore.SignalR.Client
+@using Timer = System.Timers.Timer
+
+@inject NavigationManager NavigationManager
+@implements IAsyncDisposable
+
+<SampleDescription>
+    <p>This sample shows the live CPU usage of a machine using the default line series in the chart.</p>
+</SampleDescription>
+<ActionDescription>
+    <p>
+        In this example, you can see how to render and configure the live chart.
+        The chart automatically updates itself after every 500 milliseconds and the <code>ObservableCollection</code> type is used as the data source, which is triggered on every data update within it.
+    </p>
+</ActionDescription>
+
+<div class="control-section" align="center">
+    <SfChart @ref="liveChart" Title="CPU Usage" Width="@Width">
+        <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.DateTime" LabelFormat="mm:ss" Title="Time (s)">
+            <ChartAxisMajorGridLines Width="0"></ChartAxisMajorGridLines>
+        </ChartPrimaryXAxis>
+        <ChartArea>
+            <ChartAreaBorder Width="0"></ChartAreaBorder>
+        </ChartArea>
+        <ChartPrimaryYAxis Title="Usage" Minimum="0" Interval="20" Maximum="100" LabelFormat="{value}%">
+            <ChartAxisLineStyle Width="0" Color="transparent"></ChartAxisLineStyle>
+        </ChartPrimaryYAxis>
+        <ChartSeriesCollection>
+            <ChartSeries Type="ChartSeriesType.Line" Width="2" DataSource="@DataPoints"
+                         XName="@nameof(CpuUsage.Time)" YName="@nameof(CpuUsage.CPU_Usage)">
+                <ChartSeriesAnimation Enable="true"></ChartSeriesAnimation>
+            </ChartSeries>
+        </ChartSeriesCollection>
+    </SfChart>
+</div>
+
+@code{
+    // private static Timer timer;
+    public string Width { get; set; } = "60%";
+    private SfChart liveChart;
+    
+    // Should absolutely be public
+    public readonly ObservableCollection<CpuUsage> DataPoints = new();
+    private readonly HubConnection _connection;
+    private static Timer timer;
+    private int dataLength = 100;
+    private Random randomNum = new Random();
+
+    public LiveChart()
+    {
+        _connection = new HubConnectionBuilder()
+            .WithUrl(Strings.HubUrl)
+            .Build();
+
+        _connection.On<CpuUsage>(Strings.Events.PublishCPU, this.AddData);
+    }
+    protected override async Task OnInitializedAsync()
+    {
+    // connect to server
+        while (true)
+        {
+            try
+            {
+                await _connection.StartAsync();
+                break;
+            }
+            catch
+            {
+                await Task.Delay(1000);
+            }
+        }
+        var dateTime = DateTime.Now;
+        for (int i = dataLength; i >= 0; i--)
+        {
+            DataPoints.Add(new CpuUsage()
+            {
+                Time = dateTime.AddSeconds(-i - 10),
+                CPU_Usage = 0
+            });
+        }
+    }
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        if (firstRender)
+        {
+    //if (SampleService.IsDevice)
+            {
+                Width = "100%";
+                StateHasChanged();
+            }
+        }
+    }
+
+    private void AddData(CpuUsage a)
+    {
+        if (liveChart == null)
+            return;
+        
+        if (DataPoints.Count > 100)
+            DataPoints.RemoveAt(0);
+
+        DataPoints.Add(a);
+        Debug.WriteLine($"count={DataPoints.Count} / {a.Time} - {a.CPU_Usage}");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await _connection.StopAsync();
+        await _connection.DisposeAsync();
+    }
+}

@@ -3,7 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "blazor_pivottable", "blazor_pivottable.csproj", "{80F90ABE-3ABC-46B2-9BFD-9FD00BA7960C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HubServiceInterfaces", "HubServiceInterfaces\HubServiceInterfaces.csproj", "{C1567879-1B6A-4F44-83FC-0F2ECD3CCA66}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "blazor_pivottable", "blazor_pivottable\blazor_pivottable.csproj", "{9BE94122-0009-423A-A3B2-1CBBE51FADCA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server\Server.csproj", "{294DA30B-43FC-4259-8EEA-343F7D22EE84}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +15,18 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{80F90ABE-3ABC-46B2-9BFD-9FD00BA7960C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{80F90ABE-3ABC-46B2-9BFD-9FD00BA7960C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{80F90ABE-3ABC-46B2-9BFD-9FD00BA7960C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{80F90ABE-3ABC-46B2-9BFD-9FD00BA7960C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1567879-1B6A-4F44-83FC-0F2ECD3CCA66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1567879-1B6A-4F44-83FC-0F2ECD3CCA66}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1567879-1B6A-4F44-83FC-0F2ECD3CCA66}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1567879-1B6A-4F44-83FC-0F2ECD3CCA66}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9BE94122-0009-423A-A3B2-1CBBE51FADCA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9BE94122-0009-423A-A3B2-1CBBE51FADCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9BE94122-0009-423A-A3B2-1CBBE51FADCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9BE94122-0009-423A-A3B2-1CBBE51FADCA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{294DA30B-43FC-4259-8EEA-343F7D22EE84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{294DA30B-43FC-4259-8EEA-343F7D22EE84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{294DA30B-43FC-4259-8EEA-343F7D22EE84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{294DA30B-43FC-4259-8EEA-343F7D22EE84}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
