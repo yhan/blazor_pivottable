@@ -1,0 +1,73 @@
+﻿@page "/grid/edit"
+
+<h3>GridEditTests</h3>
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.DropDowns
+@using System.Diagnostics
+@using Action = Syncfusion.Blazor.Grids.Action
+
+<SfGrid DataSource="@Users" AllowPaging="true" Toolbar="@(new List<string> { "Add", "Edit", "Delete", "Cancel", "Update" })" Height="315">
+    <GridEvents OnActionBegin="ActionBeginHandler" TValue="AuthorizedUser"></GridEvents>
+    <GridEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true"></GridEditSettings>
+    <GridColumns>
+        <GridColumn Field=@nameof(AuthorizedUser.Id) IsPrimaryKey="true"></GridColumn>
+        <GridColumn Field=@nameof(AuthorizedUser.Name)></GridColumn>
+        <GridColumn Field=@nameof(AuthorizedUser.RoleAsText) EditType="EditType.DropDownEdit">
+            <EditTemplate>
+                @{
+                    IEnumerable<string> roleOptions = new[] { "admin", "basic" };
+                }
+                <SfDropDownList TItem="string" TValue="string" DataSource="@roleOptions" @bind-Value="((AuthorizedUser)context).RoleAsText">
+                </SfDropDownList>
+            </EditTemplate>
+        </GridColumn>
+
+
+    </GridColumns>
+</SfGrid>
+
+@code {
+    protected override void OnInitialized()
+    {
+        this.Users = new List<AuthorizedUser>()
+        {
+            new AuthorizedUser() { Id = "yi@sg", Role = Role.Basic, RoleAsText = "basic" }
+        };
+    }
+
+    public List<AuthorizedUser> Users { get; set; }
+
+    public IEditorSettings RoleEditParams { get; set; } = new DropDownEditCellParams()
+    {
+        Params = new DropDownListModel<object, object>()
+        {
+            DataSource = new List<object>()
+            {
+                "Basic", "Admin"
+            }
+        }
+    };
+
+    private void ActionBeginHandler(ActionEventArgs<AuthorizedUser> args)
+    {
+        if (args.RequestType == Action.Save)
+        {
+            var u = args.Data;
+            Debug.WriteLine($"id={u.Id} name={u.Name} role={u.RoleAsText}");
+        }
+    }
+
+    public class AuthorizedUser
+    {
+        public string Name { get; set; }
+        public string Id { get; set; }
+        public Role Role { get; set; }
+        public string RoleAsText { get; set; }
+    }
+
+    public enum Role
+    {
+        Basic,
+        Admin
+    }
+}
