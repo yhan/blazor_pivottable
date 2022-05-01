@@ -3,66 +3,105 @@
 <h3>GridEditTests</h3>
 @using Syncfusion.Blazor.Grids
 @using Syncfusion.Blazor.DropDowns
+@using Syncfusion.Blazor.Popups
 @using System.Diagnostics
-@using Action = Syncfusion.Blazor.Grids.Action
+@using Action=Syncfusion.Blazor.Grids.Action
 
-<SfGrid DataSource="@Users" AllowPaging="true" Toolbar="@(new List<string> { "Add", "Edit", "Delete", "Cancel", "Update" })" Height="315">
+<SfDialog @bind-Visible="@warnVisible" Width="250px">
+    <DialogTemplates>
+        <Header>
+            User already exists
+        </Header>
+        <Content>
+            Plase use filter to find it
+        </Content>
+    </DialogTemplates>
+    <DialogEvents></DialogEvents>
+    <DialogButtons>
+        <DialogButton Content="Dismiss" IsPrimary="true" OnClick="@CloseWarn"/>
+    </DialogButtons>
+</SfDialog>
+
+<SfGrid DataSource="@users" AllowPaging="true" Toolbar="@(new List<string> { "Add", "Edit", "Delete", "Cancel", "Update" })" AllowFiltering="true">
     <GridEvents OnActionBegin="ActionBeginHandler" TValue="AuthorizedUser"></GridEvents>
-    <GridEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true"></GridEditSettings>
+    <GridEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true" Mode="EditMode.Normal"></GridEditSettings>
+    <GridFilterSettings Type="Syncfusion.Blazor.Grids.FilterType.Excel"></GridFilterSettings>
+
+    <GridPageSettings PageCount="5" PageSizes="@pageSizes"></GridPageSettings>
     <GridColumns>
-        <GridColumn Field=@nameof(AuthorizedUser.Id) IsPrimaryKey="true"></GridColumn>
-        <GridColumn Field=@nameof(AuthorizedUser.Name)></GridColumn>
-        <GridColumn Field=@nameof(AuthorizedUser.RoleAsText) EditType="EditType.DropDownEdit">
+        <GridColumn Field=@nameof(AuthorizedUser.Id) IsPrimaryKey="true"
+                    ValidationRules="@(new ValidationRules { Required = true })">
+        </GridColumn>
+        <GridColumn Field=@nameof(AuthorizedUser.Role) ValidationRules="@(new ValidationRules { Required = true })">
             <EditTemplate>
-                @{
-                    IEnumerable<string> roleOptions = new[] { "admin", "basic" };
-                }
-                <SfDropDownList TItem="string" TValue="string" DataSource="@roleOptions" @bind-Value="((AuthorizedUser)context).RoleAsText">
+                <SfDropDownList TItem="RoleVm" TValue="Role" DataSource="@roles" @bind-Value="((AuthorizedUser)context).Role">
+                    <DropDownListFieldSettings Text="RoleValue"></DropDownListFieldSettings>
                 </SfDropDownList>
             </EditTemplate>
         </GridColumn>
-
-
     </GridColumns>
 </SfGrid>
 
+
 @code {
+    private List<AuthorizedUser> users = new();
+    private bool warnVisible;
+    private static readonly Random rand = new();
+    private static readonly IEnumerable<RoleVm> roles = Enum.GetValues<Role>().Select(r => new RoleVm(r));
+
     protected override void OnInitialized()
     {
-        this.Users = new List<AuthorizedUser>()
+        var arr = new[]
         {
-            new AuthorizedUser() { Id = "yi@sg", Role = Role.Basic, RoleAsText = "basic" }
+            Role.Admin, Role.Basic
         };
-    }
-
-    public List<AuthorizedUser> Users { get; set; }
-
-    public IEditorSettings RoleEditParams { get; set; } = new DropDownEditCellParams()
-    {
-        Params = new DropDownListModel<object, object>()
+        for (int i = 0; i < 1000; i++)
         {
-            DataSource = new List<object>()
+            users.Add(new AuthorizedUser
             {
-                "Basic", "Admin"
-            }
+                Id = $"{i}@sgcib.com",
+                Role = arr[rand.Next(0, 2)]
+            });
         }
-    };
+    }
 
     private void ActionBeginHandler(ActionEventArgs<AuthorizedUser> args)
     {
         if (args.RequestType == Action.Save)
         {
             var u = args.Data;
-            Debug.WriteLine($"id={u.Id} name={u.Name} role={u.RoleAsText}");
+            switch (args.Action)
+            {
+                case "Edit":
+                    Debug.WriteLine($"Edit id={u.Id} role={u.Role} listCount={this.users.Count}");
+                    break;
+                case "Add":
+                    Debug.WriteLine($"Add id={u.Id} role={u.Role} listCount={this.users.Count}");
+                    if (users.Select(x => x.Id).Contains(u.Id))
+                    {
+                        Debug.WriteLine($"try to cancel adding {u.Id}");
+                        args.Cancel = true;
+                        this.warnVisible = true;
+                    }
+                    break;
+            }
         }
+        if (args.RequestType == Action.Delete)
+        {
+            var u = args.Data;
+            Debug.WriteLine($"Delete id={u.Id} role={u.Role} action={args.Action}");
+        }
+    }
+
+    private void CloseWarn(Object e)
+    {
+        this.warnVisible = false;
     }
 
     public class AuthorizedUser
     {
-        public string Name { get; set; }
         public string Id { get; set; }
         public Role Role { get; set; }
-        public string RoleAsText { get; set; }
     }
 
     public enum Role
@@ -70,4 +109,20 @@
         Basic,
         Admin
     }
+
+    public class RoleVm
+    {
+        public RoleVm(Role role)
+        {
+            RoleValue = role;
+        }
+        public Role RoleValue { get; }
+    }
+
+    private readonly List<string> pageSizes = new()
+    {
+        "20",
+        "50",
+        "All"
+    };
 }
